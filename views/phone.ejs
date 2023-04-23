@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>All Users</title>
+  </head>
+  <body>
+    <h1>All Users</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Email</th>
+          <th>Gender</th>
+          <th>Income</th>
+          <th>City</th>
+          <th>Car</th>
+          <th>Quote</th>
+          <th>Phone Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(function(User) { %>
+          <tr>
+            <td><%= User.id %></td>
+            <td><%= User.first_name %></td>
+            <td><%= User.last_name %></td>
+            <td><%= User.email %></td>
+            <td><%= User.gender %></td>
+            <td><%= User.income %></td>
+            <td><%= User.city %></td>
+            <td><%= User.car %></td>
+            <td><%= User.quote %></td>
+            <td><%= User.phone_price %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </body>
+</html>
