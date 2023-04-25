@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
   module.exports = User;
 
   app.get('/',async(req,res)=>{
-    res.render('home');
+    res.render('Home');
   });
   
   app.get('/users', async (req, res) => {
@@ -70,7 +70,7 @@ app.get('/last', async (req, res) => {
       const users = await User.find({
           last_name: { $regex: /^M/ },
           quote: { $exists: true, $nin: ['', null], $expr: { $gt: { $strLenCP: '$quote' }, $numberLong: "15" } },
-          email: { $regex: /M$/i, $expr: { $regexMatch: { input: { $split: ['$email', '@'] }, regex: { $concat: ['.*', { $toLower: { $arrayElemAt: [ { $split: [{ $toLower: '$last_name' }, '.'] }, -1 ] } }, '$'] } } } }
+          email: { $regexMatch: /M$/i, $regexMatch: { $regexMatch: { input: { $split: ['$email', '@'] }, regex: { $concat: ['.*', { $toLower: { $arrayElemAt: [ { $split: [{ $toLower: '$last_name' }, '.'] }, -1 ] } }, '$'] } } } }
 
         
       });
@@ -78,6 +78,71 @@ app.get('/last', async (req, res) => {
   } catch (err) {
       console.error(err);
       res.status(500).send('Server error');
+  }
+});
+
+
+app.get('/fourth', async (req, res) => {
+  try {
+    const users = await User.find({
+      car: { $in: ['BMW', 'Mercedes-Benz', 'Audi'] },
+      email: { $not: { $regex: /\d/ } }
+    });
+    res.render('fourth', { users: users });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.get('/top', async (req, res) => {
+  
+  try {
+    const users = await User.aggregate([
+      
+      {
+        $addFields: {
+          income: {
+            $convert: {
+              input: {
+                $substr: [
+                  "$income",
+                  1,
+                  {
+                    $subtract: [
+                      { $strLenCP: "$income" },
+                      1
+                    ]
+                  }
+                ]
+              },
+              to: "decimal",
+              onError: 0
+            }
+          }
+        }
+      },
+      
+      
+      {
+        $group: {
+          _id: "$city",
+          count: { $sum: 1 },
+          avg_income: { $avg: "$income" }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      },
+      {
+        $limit: 10
+      },
+      
+    ]);
+    res.render('top', {  cities: users });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
   }
 });
 
