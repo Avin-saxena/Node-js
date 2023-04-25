@@ -5,7 +5,28 @@ const cors=require('cors');
 const ejs = require("ejs");
 const path = require("path");
 const { isNumberObject } = require("util/types");
+const compression = require('compression');
+const cluster = require('cluster');
+const os = require('os');
 const PORT=process.env.port || 9002
+
+
+
+/***********************************Using cluster method********************************************/
+
+if (cluster.isMaster) {
+  console.log(`Master process is running on PID ${process.pid}`);
+  for (let i = 0; i < os.cpus().length; i++) {
+    cluster.fork();
+  }
+
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`Worker ${worker.process.pid} died with code ${code} and signal ${signal}`);
+    console.log('Starting a new worker');
+    cluster.fork();
+  });
+}
+else{
 
 const app = express();
 app.set("view engine", "ejs");
@@ -15,6 +36,8 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static("public"));
+
+app.use(compression());
 
 const userSchema = new mongoose.Schema({
     id: { type: Number, required: true },
@@ -31,9 +54,14 @@ const userSchema = new mongoose.Schema({
   const User = mongoose.model('User', userSchema);
   module.exports = User;
 
+
+/*********************************home page**********************************/
   app.get('/',async(req,res)=>{
     res.render('Home');
   });
+
+
+/*********************************First api***********************************/
   
   app.get('/users', async (req, res) => {
     try {
@@ -52,6 +80,7 @@ const userSchema = new mongoose.Schema({
   });
 
 
+/*********************************Second api***********************************/
   app.get('/phone', async (req, res) => {
     try {
         const users = await User.find({
@@ -65,6 +94,8 @@ const userSchema = new mongoose.Schema({
     }
 });
 
+
+/*********************************Third api***********************************/
 app.get('/last', async (req, res) => {
   try {
       const users = await User.find({
@@ -82,6 +113,7 @@ app.get('/last', async (req, res) => {
 });
 
 
+/*********************************Fourth api***********************************/
 app.get('/fourth', async (req, res) => {
   try {
     const users = await User.find({
@@ -95,6 +127,8 @@ app.get('/fourth', async (req, res) => {
   }
 });
 
+
+/*********************************Fifth api***********************************/
 app.get('/top', async (req, res) => {
   
   try {
@@ -147,11 +181,6 @@ app.get('/top', async (req, res) => {
 });
 
 
-  
-
-  
-  
-  
 /*******************************************************************************************************************/
 main().catch(err => console.log(err));
 
@@ -166,3 +195,4 @@ async function main() {
 app.listen(PORT, () => {
   console.log('Server started on port 9002');
 });
+}
